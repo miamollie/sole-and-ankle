@@ -1,9 +1,9 @@
-import React from 'react';
-import styled from 'styled-components/macro';
+import React from "react";
+import styled from "styled-components/macro";
 
-import { COLORS, WEIGHTS } from '../../constants';
-import { formatPrice, pluralize, isNewShoe } from '../../utils';
-import Spacer from '../Spacer';
+import { COLORS, WEIGHTS } from "../../constants";
+import { formatPrice, pluralize, isNewShoe } from "../../utils";
+import Spacer from "../Spacer";
 
 const ShoeCard = ({
   slug,
@@ -25,11 +25,12 @@ const ShoeCard = ({
   // both on-sale and new-release, but in this case, `on-sale`
   // will triumph and be the variant used.
   // prettier-ignore
-  const variant = typeof salePrice === 'number'
-    ? 'on-sale'
+  const isSale = typeof salePrice === 'number'
+  const variant = isSale
+    ? "on-sale"
     : isNewShoe(releaseDate)
-      ? 'new-release'
-      : 'default'
+    ? "new-release"
+    : "default";
 
   return (
     <Link href={`/shoe/${slug}`}>
@@ -40,11 +41,13 @@ const ShoeCard = ({
         <Spacer size={12} />
         <Row>
           <Name>{name}</Name>
-          <Price>{formatPrice(price)}</Price>
+          <Price isSale={isSale}>{formatPrice(price)}</Price>
         </Row>
         <Row>
-          <ColorInfo>{pluralize('Color', numOfColors)}</ColorInfo>
+          <ColorInfo>{pluralize("Color", numOfColors)}</ColorInfo>
+          {salePrice && <SalePrice>{formatPrice(salePrice)}</SalePrice>}
         </Row>
+        <Flag variant={variant} />
       </Wrapper>
     </Link>
   );
@@ -53,17 +56,32 @@ const ShoeCard = ({
 const Link = styled.a`
   text-decoration: none;
   color: inherit;
+  flex: 1 1 340px;
 `;
 
-const Wrapper = styled.article``;
+const Wrapper = styled.article`
+  display: flex;
+  flex-direction: column;
+  position: relative;
+`;
 
 const ImageWrapper = styled.div`
   position: relative;
 `;
 
-const Image = styled.img``;
+const Image = styled.img`
+  width: 100%;
+  border-radius: 16px 16px 4px 4px;
+  border: 2px solid transparent;
+  &:hover {
+    border-color: ${COLORS.secondary};
+  }
+`;
 
 const Row = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-size: 1rem;
 `;
 
@@ -72,7 +90,9 @@ const Name = styled.h3`
   color: ${COLORS.gray[900]};
 `;
 
-const Price = styled.span``;
+const Price = styled.span`
+  text-decoration: ${(props) => props.isSale && "line-through"};
+`;
 
 const ColorInfo = styled.p`
   color: ${COLORS.gray[700]};
@@ -82,5 +102,31 @@ const SalePrice = styled.span`
   font-weight: ${WEIGHTS.medium};
   color: ${COLORS.primary};
 `;
+
+const FlagStyle = styled.div`
+  position: absolute;
+  top: 12px;
+  right: 0px;
+  color: white;
+  background-color: var(--color);
+  padding: 7px 9px 9px 10px;
+  border-radius: 2px;
+`;
+
+function Flag({ variant }) {
+  if (variant === "default") {
+    return null;
+  }
+  const isSale = variant === "on-sale"
+  return (
+    <FlagStyle
+      style={{
+        "--color": isSale ? COLORS.primary : COLORS.secondary,
+      }}
+    >
+      {isSale ? 'Sale' : "Just released!"}
+    </FlagStyle>
+  );
+}
 
 export default ShoeCard;
